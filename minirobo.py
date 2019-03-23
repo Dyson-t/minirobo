@@ -178,29 +178,6 @@ class NotifyDelegate(DefaultDelegate):
         if cHandle == HANDLE_BUTTON2:
             button2 = (datah & 0xff000000) >> 0x18
 
-# 2019/3/21 なぜかスキャンハンドラからコネクトできなくなったのでコメントアウト
-#class ScanDelegate(DefaultDelegate):
-#    def __init__(self):
-#        DefaultDelegate.__init__(self)
-#        #self.scannedDevs = {}
-#
-#    def handleDiscovery(self, dev, isNewDev, isNewData):
-#        print("discover:", dev.addr)
-#        if dev.addr == ADDR_BSTICK:
-#            #if dev.addr in self.scannedDevs.keys():
-#            #    print("already exist keys.")
-#            #    return
-#            devThread = Connection(dev)
-#            devThread.setDelegate(NotifyDelegate())
-#            #self.scannedDevs[dev.addr] = devThread
-#            devThread.start()
-#            print("connect:", dev.addr, 'RSSI=', dev.rssi)
-#            devThread.writeCharacteristic(HANDLE_RSSI, str(dev.rssi).encode('utf-8'), 0)
-#            while True: # Notify待ち
-#                if devThread.waitForNotifications(300.0):
-#                    continue
-#                print("wait..")
-
 def main():
     while True:
         scanner = Scanner() # スキャン開始。
