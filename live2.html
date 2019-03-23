@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"></head>
+<body><h3>ライブ配信</h3>
+  <img id="img">
+  <script>
+    var img = document.getElementById("img");
+    img.onload = update;
+    var r = 0;
+    function update() {
+      img.src = "camera?" + r;
+      r++;
+    }
+    update();
+  </script>
+</body></html>
+
