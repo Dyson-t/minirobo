@@ -1,0 +1,12 @@
+[Unit]
+Description=minirobo_start
+After=local-fs.target
+ConditionPathExists=/opt/minirobo/bin/
+
+[Service]
+ExecStart=/opt/minirobo/bin/minirobo_startup.sh
+Restart=no
+Type=simple
+
+[Install]
+WantedBy=multi-user.target
