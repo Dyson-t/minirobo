@@ -18,7 +18,7 @@
 # □カメラ画像画面をHUD風にしたい。各種センサー情報、ペリフェラル側の情報、
 #                              収集した情報履歴、RSSI、BLEが途切れたときのための操作機能
 # ■後退時に左右制御しにくい問題を修正
-# □駆動系を別ソース化
+# ■駆動系を別ソース化
 # □lcd.printをprintと同じように使えるようにしたい。変数埋め込みとか
 # ■カメラヘッドの動きを滑らかにしたい。PWMの解像度UP → スティックのキャラクタリスティックを左右分割
 # ■DCモーターのノイズでサーボが誤動作するのでコンデンサ追加したい（ハード側）→ 乾電池を交換することで解決。
@@ -32,7 +32,7 @@ import struct
 from datetime import datetime
 import argparse
 import binascii
-from PCA9685_test import setSurboAngle
+from PCA9685_CAMERAHEAD import moveCameraHead
 from threading import Thread, Timer
 from DRV8835_TWINGEAR import DRV8835TwinGear
 # システムコマンド関連
@@ -70,10 +70,6 @@ def c2tilt( chr ):
     tilt = ( mchr / 0x700 ) * maxtilt * -1
     return tilt
 
-def moveCameraHead(tiltlr, tiltud):
-    setSurboAngle(0, tiltud)
-    setSurboAngle(1, tiltlr)
-
 # -100 〜 100 となるよう変換する。
 def c2duty( chr ):
     maxduty = 100
@@ -84,65 +80,6 @@ def c2duty( chr ):
     mchr = mchr - 0x700 # -0x61 〜 0x61 の範囲へ補正x
     duty = int(( mchr / 0x700 ) * maxduty * -1 ) 
     return duty
-
-# ジョイスティック値はそれぞれ最大 L:100 R:-100、U：100 D:-100 の値を取る。
-# これを左右のモーターの正転・逆転 及びDUTY比へ変換する。
-def moveTwinGear(ratio_lr, ratio_ud):
-    #仮実装。なぜか左右逆にまがってしまうので。。。
-    ratio_lr = ratio_lr * -1
-    #スティックの角度
-    #スティック真右が0度。真左が180度。真上が90度。真下が-90度とする。
-    radian = math.atan2(ratio_ud, ratio_lr)
-    degree = math.degrees(radian)
-    # 真横に近い角度の場合は超信地旋回する。
-    if (10 >= degree and degree >= -10) or (degree >= 170) or ( degree <= -170): 
-        if ratio_lr >= 0:
-            lfb = 1
-            rfb = 0
-            lduty = ratio_lr
-            rduty = ratio_lr
-        else:
-            lfb = 0
-            rfb = 1
-            lduty = ratio_lr * -1
-            rduty = ratio_lr * -1
-    else:
-        lduty = ratio_ud
-        rduty = ratio_ud
-        # LR方向の傾き（X）、UD(Y）として、三平方の定理より中心からの距離を求める。
-        distance = int(math.sqrt(pow(ratio_ud,2) + pow(ratio_lr,2)))
-        # LRの比率を求める
-        lengthL = 100 + ( ratio_lr * -1 )
-        lengthR = 100 - ( ratio_lr * -1 )
-        ratio = lengthL / (lengthL + lengthR)
-        # 距離に応じてratioがきつめに出るので補正する。
-        # 中心からの距離が100以上の場合は100とみなす。
-        if distance >= 100:
-            ratio = ratio * (100 / distance)
-            distance = 100
-        # LR方向の値で補正
-        if ratio_lr <= -5: # 右に倒してる場合
-            # 右モーターにratioを掛ける。
-            rduty = int(( 1 - ratio ) * distance)
-            # 左モーターは距離をそのまま適用
-            lduty = distance
-        elif ratio_lr >= 5: # 左に倒している場合
-            # 右モーターは距離をそのまま適用
-            rduty = distance
-            # 左モーターにratioを掛ける。
-            lduty = int( ratio * distance)
-        else:
-            rduty = distance
-            lduty = distance
-        # 正転・逆転を求める。
-        if degree >= 0: # 前進
-            lfb = 0 # 0:正転・1:逆転
-            rfb = 0
-        else: # 後退
-            lfb = 1 # 0:正転・1:逆転
-            rfb = 1
-    #print(ratio_lr, ratio_ud, " -> ", lfb, lduty, rfb, rduty)
-    Drv.ChangeDuty(lfb, lduty, rfb, rduty)
 
 # Peripheralへコネクトするためのクラス（Peripheralクラスを継承）
 # インスタンスを生成した時点でコネクトしてくれる。
@@ -170,7 +107,7 @@ class NotifyDelegate(DefaultDelegate):
         if cHandle == HANDLE_STICK_L:
             stick2_lr = (datah & 0xffff0000) >> 0x10
             stick2_ud = (datah & 0x0000ffff)
-            moveTwinGear(c2duty(stick2_lr), c2duty(stick2_ud))
+            Drv.MoveTwinGear(c2duty(stick2_lr), c2duty(stick2_ud))
         if cHandle == HANDLE_BUTTON1:
             # dataには別のキャラクタリスティックの値が残ってる（バグ？）ので、
             # 必要な部分だけ取得。例えば（0x01006161 )と入っている。
