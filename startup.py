@@ -32,18 +32,7 @@ print(ip_list)
 for str in ip_list:
     lcd.print(str)
 
-lcd.print( 'Robo initializing..')
-#sleep(30)
-minirobo.main()
-# mjpeg-streamer起動
-r = 1
-while r != 0:
-    try:
-        r = subprocess.check_output("sh /home/pi/lib/mjpg-streamer/start.sh", shell=True)
-        #cd.print( 'mjpeg-streamer started' )
-        lcd.print( 'http://' + ip_list[1] + ':9000/?action=stream')
-    except:
-        lcd.print( 'mjpeg-streamer start failed.' )
+sleep(10)
 
 # blynk起動
 # try:
@@ -54,4 +43,6 @@ while r != 0:
 #     lcd.print( 'blynk start failed.' )
 
 
-lcd.print('ready')
+lcd.print( 'Robo initializing..')
+minirobo.main()
+

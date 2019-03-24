@@ -97,9 +97,7 @@ class NotifyDelegate(DefaultDelegate):
         
     def handleNotification(self, cHandle, data):
         c_data = binascii.b2a_hex(data)
-        #print( "Notify handler called.cHandle=",cHandle," data=", c_data)
         datah = int(c_data, 16)
-        #c_handle = binascii.b2a_hex(cHandle)
         if cHandle == HANDLE_STICK_R:
             stick1_lr = (datah & 0xffff0000) >> 0x10
             stick1_ud = (datah & 0x0000ffff)
@@ -109,8 +107,6 @@ class NotifyDelegate(DefaultDelegate):
             stick2_ud = (datah & 0x0000ffff)
             Drv.MoveTwinGear(c2duty(stick2_lr), c2duty(stick2_ud))
         if cHandle == HANDLE_BUTTON1:
-            # dataには別のキャラクタリスティックの値が残ってる（バグ？）ので、
-            # 必要な部分だけ取得。例えば（0x01006161 )と入っている。
             button1 = (datah & 0xff000000) >> 0x18
         if cHandle == HANDLE_BUTTON2:
             button2 = (datah & 0xff000000) >> 0x18

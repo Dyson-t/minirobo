@@ -18,7 +18,7 @@ camera = cv2.VideoCapture(0)
 class liveHTTPServer_Handler(BaseHTTPRequestHandler):
     # アクセスがあったとき
     def do_GET(self):
-        print("path=",self.path)
+        #print("path=",self.path)
         # 画像を送信する --- (*2)
         if self.path[0:7] == "/camera":
             # ヘッダ
@@ -44,6 +44,18 @@ class liveHTTPServer_Handler(BaseHTTPRequestHandler):
                     color = (255, 0, 0)
                     cv2.rectangle(img, (x,y), (x+w, y+h),
                         color, thickness=8)
+                    #print(x,",",y,",",w,",",h)
+                    # 顔の座標を求める
+                    face_x = x + (w/2)
+                    face_y = y + (h/2)
+                    print( "x=",face_x,"y=",face_y)
+                    # 中心軸からのズレを求める
+                    # スクリーンサイズは多分600x400
+                    # ということは中心は300x200
+                    # 座標のズレ
+                    zure_x = 300 - face_x
+                    zure_y = 200 - face_y
+                    
 
             ######## ここまで
 
