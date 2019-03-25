@@ -118,16 +118,22 @@ def main():
         while True:
             devices = scanner.scan(5.0)
             for device in devices:
-                if device.addr == ADDR_BSTICK:
-                    con = Connection( device )
-                    con.setDelegate(NotifyDelegate())
-                    con.start()
-                    print( "connect to:",device.addr," RSSI=",device.rssi)
-                    con.writeCharacteristic(HANDLE_RSSI, str(device.rssi).encode('utf-8'), 0)
-                    while True:
+                if device.addr != ADDR_BSTICK:
+                    continue
+                con = Connection( device )
+                con.setDelegate(NotifyDelegate())
+                con.start()
+                print( "connect to:",device.addr," RSSI=",device.rssi)
+                con.writeCharacteristic(HANDLE_RSSI, 
+                        str(device.rssi).encode('utf-8'), 0)
+                while True:
+                    try:
                         if con.waitForNotifications(10):
                             continue
                         print("wait..")
+                    except BTLEException:
+                        print("BTLEException. Now retry..")
+                        pass
                     
 
 if __name__ == "__main__":
